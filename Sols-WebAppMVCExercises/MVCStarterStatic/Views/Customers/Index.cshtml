@@ -1,0 +1,15 @@
+﻿@model List<MVCStarterStatic.Models.Customer>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Current customers</h1>
+<div>
+    <ul>
+        @foreach(Customer cust in Model) {
+            <li>@cust</li>
+        }
+    </ul>
+</div>
+

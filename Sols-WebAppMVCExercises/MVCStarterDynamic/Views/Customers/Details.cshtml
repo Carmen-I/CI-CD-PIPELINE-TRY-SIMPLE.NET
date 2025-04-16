@@ -1,0 +1,38 @@
+﻿@model MVCStarterDynamic.Models.Customer
+
+@{
+    ViewData["Title"] = "Get customer";
+}
+
+<div>
+    @*h1 and h3 tags displayed unconditionally*@
+    <h1>Customer by id</h1>
+    <h3>@ViewBag.SubHeadline</h3>
+
+    @*Only if valid - a customer found*@
+    @if (ViewBag.Situation == MVCStarterDynamic.Models.EnumIdValidity.Valid) {
+        <dl class="row">
+            <dt class = "col-sm-2">
+                @Html.DisplayNameFor(model => model.Id)
+            </dt>
+            <dd class = "col-sm-10">
+                @Html.DisplayFor(model => model.Id)
+            </dd>
+            <dt class = "col-sm-2">
+                @Html.DisplayNameFor(model => model.FirstName)
+            </dt>
+            <dd class = "col-sm-10">
+                @Html.DisplayFor(model => model.FirstName)
+            </dd>
+            <dt class = "col-sm-2">
+                @Html.DisplayNameFor(model => model.LastName)
+            </dt>
+            <dd class = "col-sm-10">
+                @Html.DisplayFor(model => model.LastName)
+            </dd>
+        </dl>
+    }
+</div>
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>

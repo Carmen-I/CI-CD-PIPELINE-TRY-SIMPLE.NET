@@ -1,0 +1,23 @@
+﻿@model List<MVCStarterDynamic.Models.Customer>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Customers</h1>
+
+<div>
+    <div>Customer detail</div>
+    <ul>
+        @if (Model != null && Model.Count > 0) {
+            foreach (Customer cust in Model) {
+            <li>@cust
+                <a href="customers/details/@cust.Id" >more</a>
+            </li>
+        }
+        }
+    </ul>
+</div>
+
+
+
