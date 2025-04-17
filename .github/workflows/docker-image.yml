@@ -1,4 +1,4 @@
-name: Build and Push Solution to GHCR
+name: Build and Push All Projects to GHCR
 
 on:
   push:
@@ -27,44 +27,31 @@ jobs:
         with:
           dotnet-version: '8.0' # Specify your .NET version
 
-      # 3. Restore, build, and publish the solution
-      - name: Restore, Build, and Publish Solution
+      # 3. Find all .csproj files and process each one
+      - name: Find and Process All Projects
         run: |
-          # Navigate to the solution directory
-          cd Sols-WebAppMVCExercises
-
-          # Restore dependencies for the solution
-          dotnet restore Sols-WebAppMVCExercises.sln
-
-          # Build the solution
-          dotnet build Sols-WebAppMVCExercises.sln --configuration Release --no-restore
-
-          # Publish the solution to an output directory
-          dotnet publish Sols-WebAppMVCExercises.sln --configuration Release --output ./out
-
-          # Verify the output directory
-          echo "Listing contents of the ./out directory:"
-          ls -la ./out || (echo "./out directory does not exist." && exit 1)
-
-      # 4. Generate Dockerfile
-      - name: Generate Dockerfile
-        run: |
-          cat > Dockerfile <<- EOF
+          # Find all .csproj files
+          for project in $(find . -name '*.csproj'); do
+            echo "Processing project: $project"
+            # Restore dependencies
+            dotnet restore $project
+            # Build the project
+            dotnet build $project --configuration Release --no-restore
+            # Publish the project to an output directory
+            publish_dir="./out/$(basename $project .csproj)"
+            dotnet publish $project --configuration Release --output $publish_dir
+            # Generate a Dockerfile dynamically for each project
+            cat > Dockerfile <<EOF
           FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
           WORKDIR /app
-          COPY ./out ./
+          COPY $publish_dir ./
           EXPOSE 80
-          ENTRYPOINT ["dotnet", "Sols-WebAppMVCExercises.dll"]
+          ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
           EOF
-
-      # 5. Log in to GHCR
-      - name: Log in to GHCR
-        run: |
-          echo "${{ secrets.SECRET_NAME }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-      # 6. Build and Push Docker Image
-      - name: Build and Push Docker Image
-        run: |
-          LOWERCASE_OWNER=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/sols-webappmvcexercises:latest .
-          docker push ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/sols-webappmvcexercises:latest
+            # Log in to GHCR using your secret key
+            echo "${{ secrets.SECRET_NAME }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            # Build and push Docker image
+            image_name="${{ env.REGISTRY }}/$(echo ${{ env.OWNER }} | tr '[:upper:]' '[:lower:]')/$(basename $project .csproj | tr '[:upper:]' '[:lower:]'):latest"
+            docker build -t $image_name .
+            docker push $image_name
+          done
