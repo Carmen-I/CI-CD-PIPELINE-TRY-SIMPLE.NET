@@ -14,49 +14,49 @@ jobs:
 
     env:
       REGISTRY: ghcr.io
-      OWNER: ${{ github.reimagined-pancake}} # Your GitHub username or organization
+      OWNER: ${{ github.repository_owner }} # Your GitHub username or organization
 
     steps:
-    # 1. Checkout the repository
-    - name: Checkout code
-      uses: actions/checkout@v3
+      # 1. Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    # 2. Set up .NET
-    - name: Set up .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0' # Specify your .NET version
+      # 2. Set up .NET
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0' # Specify your .NET version
 
-    # 3. Find all .csproj files and process each one
-    - name: Find and Process All Projects
-      run: |
-        # Find all .csproj files
-        for project in $(find . -name '*.csproj'); do
-          echo "Processing project: $project"
+      # 3. Find all .csproj files and process each one
+      - name: Find and Process All Projects
+        run: |
+          # Find all .csproj files
+          for project in $(find . -name '*.csproj'); do
+            echo "Processing project: $project"
 
-          # Restore dependencies
-          dotnet restore $project
+            # Restore dependencies
+            dotnet restore $project
 
-          # Build the project
-          dotnet build $project --configuration Release --no-restore
+            # Build the project
+            dotnet build $project --configuration Release --no-restore
 
-          # Publish the project to an output directory
-          dotnet publish $project --configuration Release --output ./out/$(basename $project)
+            # Publish the project to an output directory
+            dotnet publish $project --configuration Release --output ./out/$(basename $project)
 
-          # Generate a Dockerfile dynamically for each project
-          cat <<EOF > Dockerfile
-          FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
-          WORKDIR /app
-          COPY ./out/$(basename $project) ./
-          EXPOSE 80
-          ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
-          EOF
+            # Generate a Dockerfile dynamically for each project
+            cat <<EOF > Dockerfile
+            FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+            WORKDIR /app
+            COPY ./out/$(basename $project) ./
+            EXPOSE 80
+            ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
+            EOF
 
-          # Log in to GHCR
-          echo "Logging in to GHCR"
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            # Log in to GHCR
+            echo "Logging in to GHCR"
+            echo "${{ secrets.SECRET_NAME }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-          # Build and push Docker image
-          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest .
-          docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest
-        done
+            # Build and push Docker image
+            docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest .
+            docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest
+          done
