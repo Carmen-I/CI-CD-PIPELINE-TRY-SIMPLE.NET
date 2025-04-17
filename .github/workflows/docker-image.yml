@@ -42,16 +42,9 @@ jobs:
           # Publish the solution to an output directory
           dotnet publish Sols-WebAppMVCExercises.sln --configuration Release --output ./out
 
-          # Debug output directory
-          echo "Listing contents of the current directory:"
-          ls -la
-          echo "Listing contents of the ./out directory if it exists:"
-          if [ -d "./out" ]; then
-            ls -la ./out
-          else
-            echo "./out directory does not exist."
-            exit 1
-          fi
+          # Verify the output directory
+          echo "Listing contents of the ./out directory:"
+          ls -la ./out || (echo "./out directory does not exist." && exit 1)
 
       # 4. Generate Dockerfile
       - name: Generate Dockerfile
@@ -73,8 +66,5 @@ jobs:
       - name: Build and Push Docker Image
         run: |
           LOWERCASE_OWNER=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
-          docker build -t ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/mysolution:latest .
-          docker push ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/mysolution:latest
-
-
-
+          docker build -t ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/sols-webappmvcexercises:latest .
+          docker push ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/sols-webappmvcexercises:latest
