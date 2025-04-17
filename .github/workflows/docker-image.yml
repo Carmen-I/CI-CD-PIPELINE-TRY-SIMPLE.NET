@@ -38,9 +38,6 @@ jobs:
     # Push the Dockerfile to the docker branch
     - name: Push Dockerfile to docker branch
       run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
-        git checkout docker
         git add Dockerfile
         git commit -m "Auto-generated Dockerfile"
         git push origin docker
