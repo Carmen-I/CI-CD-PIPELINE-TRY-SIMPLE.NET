@@ -1,18 +1,46 @@
-name: Docker Image CI
+name: Generate and Push Dockerfile
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-
-  build:
-
+  generate-dockerfile:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag reimagined-pancake:$(date +%s)
+    # Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Generate a Dockerfile
+    - name: Create Dockerfile
+      run: |
+        echo '# Use the official .NET runtime as a base image' > Dockerfile
+        echo 'FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base' >> Dockerfile
+        echo 'WORKDIR /app' >> Dockerfile
+        echo 'EXPOSE 80' >> Dockerfile
+        echo '' >> Dockerfile
+        echo '# Use the official .NET SDK as a build image' >> Dockerfile
+        echo 'FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build' >> Dockerfile
+        echo 'WORKDIR /src' >> Dockerfile
+        echo 'COPY . .' >> Dockerfile
+        echo 'RUN dotnet restore' >> Dockerfile
+        echo 'RUN dotnet publish -c Release -o /app/publish' >> Dockerfile
+        echo '' >> Dockerfile
+        echo '# Build runtime image' >> Dockerfile
+        echo 'FROM base AS final' >> Dockerfile
+        echo 'WORKDIR /app' >> Dockerfile
+        echo 'COPY --from=build /app/publish .' >> Dockerfile
+        echo 'ENTRYPOINT ["dotnet", "Sols-WebAppMVCExercises.dll"]' >> Dockerfile
+
+    # Push the Dockerfile to the docker branch
+    - name: Push Dockerfile to docker branch
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git checkout docker
+        git add Dockerfile
+        git commit -m "Auto-generated Dockerfile"
+        git push origin docker
