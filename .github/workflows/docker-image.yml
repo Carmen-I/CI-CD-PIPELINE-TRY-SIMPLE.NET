@@ -59,5 +59,6 @@ jobs:
       # 6. Build and Push Docker Image
       - name: Build and Push Docker Image
         run: |
+         LOWERCASE_OWNER=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/mysolution:latest .
           docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/mysolution:latest
