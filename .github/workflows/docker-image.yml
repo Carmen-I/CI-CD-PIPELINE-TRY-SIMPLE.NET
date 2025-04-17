@@ -46,7 +46,6 @@ jobs:
           WORKDIR /app
           COPY $publish_dir ./
           EXPOSE 8080
-            docker run -d -p 8080:8080 $image_name
           ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
           EOF
             # Log in to GHCR using your secret key
