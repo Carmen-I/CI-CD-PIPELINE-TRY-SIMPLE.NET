@@ -31,6 +31,7 @@ jobs:
       - name: Restore, Build, and Publish Solution
         run: |
           # Restore dependencies for the solution
+          cd Sols-WebAppMVCExercises
           dotnet restore Sols-WebAppMVCExercises.sln
 
           # Build the solution
