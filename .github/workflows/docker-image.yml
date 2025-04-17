@@ -34,11 +34,11 @@ jobs:
         echo 'WORKDIR /app' >> Dockerfile
         echo 'COPY --from=build /app/publish .' >> Dockerfile
         echo 'ENTRYPOINT ["dotnet", "Sols-WebAppMVCExercises.dll"]' >> Dockerfile
-        - name: Set up Git user
-      
-        run: |
-         git config --global user.name "Carmen-I"
-         git config --global user.email "10523999@ucn.dk"
+
+    - name: Set up Git user
+      run: |
+        git config --global user.name "Carmen-I"
+        git config --global user.email "10523999@ucn.dk"
 
     # Push the Dockerfile to the docker branch
     - name: Push Dockerfile to docker branch
