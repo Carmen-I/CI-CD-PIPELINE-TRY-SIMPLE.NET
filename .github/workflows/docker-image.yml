@@ -30,21 +30,29 @@ jobs:
       # 3. Restore, build, and publish the solution
       - name: Restore, Build, and Publish Solution
         run: |
-         # Restore dependencies for the solution
-         cd Sols-WebAppMVCExercises
-         dotnet restore Sols-WebAppMVCExercises.sln
+          # Navigate to the solution directory
+          cd Sols-WebAppMVCExercises
 
-         # Build the solution
-         dotnet build Sols-WebAppMVCExercises.sln --configuration Release --no-restore
+          # Restore dependencies for the solution
+          dotnet restore Sols-WebAppMVCExercises.sln
 
-         # Publish the solution to an output directory
-         dotnet publish Sols-WebAppMVCExercises.sln --configuration Release --output ./out
+          # Build the solution
+          dotnet build Sols-WebAppMVCExercises.sln --configuration Release --no-restore
 
-         # Verify that the output directory exists
-         if [ ! -d "./out" ]; then
-          echo "Error: The ./out directory was not created by dotnet publish."
-          exit 1
-         fi
+          # Publish the solution to an output directory
+          dotnet publish Sols-WebAppMVCExercises.sln --configuration Release --output ./out
+
+          # Debug output directory
+          echo "Listing contents of the current directory:"
+          ls -la
+          echo "Listing contents of the ./out directory if it exists:"
+          if [ -d "./out" ]; then
+            ls -la ./out
+          else
+            echo "./out directory does not exist."
+            exit 1
+          fi
+
       # 4. Generate Dockerfile
       - name: Generate Dockerfile
         run: |
@@ -64,6 +72,9 @@ jobs:
       # 6. Build and Push Docker Image
       - name: Build and Push Docker Image
         run: |
-         LOWERCASE_OWNER=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
-         docker build -t ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/mysolution:latest .
-         docker push ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/mysolution:latest
+          LOWERCASE_OWNER=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/mysolution:latest .
+          docker push ${{ env.REGISTRY }}/${LOWERCASE_OWNER}/mysolution:latest
+
+
+
