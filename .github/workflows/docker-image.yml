@@ -41,22 +41,23 @@ jobs:
             dotnet build $project --configuration Release --no-restore
 
             # Publish the project to an output directory
-            dotnet publish $project --configuration Release --output ./out/$(basename $project)
+            publish_dir="./out/$(basename $project .csproj)"
+            dotnet publish $project --configuration Release --output $publish_dir
 
             # Generate a Dockerfile dynamically for each project
-            cat > Dockerfile <<- 'EOF'
-            FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
-            WORKDIR /app
-            COPY ./out/$(basename $project) ./
-            EXPOSE 80
-            ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
-            EOF
+            cat > Dockerfile <<EOF
+          FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+          WORKDIR /app
+          COPY $publish_dir ./
+          EXPOSE 80
+          ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
+          EOF
 
-            # Log in to GHCR
-            echo "Logging in to GHCR"
+            # Log in to GHCR using your secret key
             echo "${{ secrets.SECRET_NAME }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
             # Build and push Docker image
-            docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest .
-            docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest
+            image_name="${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project .csproj):latest"
+            docker build -t $image_name .
+            docker push $image_name
           done
