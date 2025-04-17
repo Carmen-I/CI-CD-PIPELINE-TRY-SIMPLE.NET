@@ -30,16 +30,21 @@ jobs:
       # 3. Restore, build, and publish the solution
       - name: Restore, Build, and Publish Solution
         run: |
-          # Restore dependencies for the solution
-          cd Sols-WebAppMVCExercises
-          dotnet restore Sols-WebAppMVCExercises.sln
+         # Restore dependencies for the solution
+         cd Sols-WebAppMVCExercises
+         dotnet restore Sols-WebAppMVCExercises.sln
 
-          # Build the solution
-          dotnet build Sols-WebAppMVCExercises.sln --configuration Release --no-restore
+         # Build the solution
+         dotnet build Sols-WebAppMVCExercises.sln --configuration Release --no-restore
 
-          # Publish the solution to an output directory
-          dotnet publish Sols-WebAppMVCExercises.sln --configuration Release --output ./out
+         # Publish the solution to an output directory
+         dotnet publish Sols-WebAppMVCExercises.sln --configuration Release --output ./out
 
+         # Verify that the output directory exists
+         if [ ! -d "./out" ]; then
+          echo "Error: The ./out directory was not created by dotnet publish."
+          exit 1
+         fi
       # 4. Generate Dockerfile
       - name: Generate Dockerfile
         run: |
