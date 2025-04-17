@@ -1,52 +1,62 @@
-name: Generate and Push Dockerfile
+name: Build and Push All Projects to GHCR
 
 on:
   push:
     branches:
-      - main
-
-permissions:
-  contents: write
+      - main  # Runs when changes are pushed to the main branch
+  pull_request:
+    branches:
+      - main  # Runs on pull requests to the main branch
 
 jobs:
-  generate-dockerfile:
+  build-and-push:
     runs-on: ubuntu-latest
 
+    env:
+      REGISTRY: ghcr.io
+      OWNER: ${{ github.reimagined-pancake}} # Your GitHub username or organization
+
     steps:
-    # Checkout the repository
+    # 1. Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Generate a Dockerfile
-    - name: Create Dockerfile
-      run: |
-        echo '# Use the official .NET runtime as a base image' > Dockerfile
-        echo 'FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base' >> Dockerfile
-        echo 'WORKDIR /app' >> Dockerfile
-        echo 'EXPOSE 80' >> Dockerfile
-        echo '' >> Dockerfile
-        echo '# Use the official .NET SDK as a build image' >> Dockerfile
-        echo 'FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build' >> Dockerfile
-        echo 'WORKDIR /src' >> Dockerfile
-        echo 'COPY . .' >> Dockerfile
-        echo 'RUN dotnet restore' >> Dockerfile
-        echo 'RUN dotnet publish -c Release -o /app/publish' >> Dockerfile
-        echo '' >> Dockerfile
-        echo '# Build runtime image' >> Dockerfile
-        echo 'FROM base AS final' >> Dockerfile
-        echo 'WORKDIR /app' >> Dockerfile
-        echo 'COPY --from=build /app/publish .' >> Dockerfile
-        echo 'ENTRYPOINT ["dotnet", "Sols-WebAppMVCExercises.dll"]' >> Dockerfile
+    # 2. Set up .NET
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: .0 # Specify your .NET version
 
-    - name: Set up Git user
+    # 3. Find all .csproj files and process each one
+    - name: Find and Process All Projects
       run: |
-        git config --global user.name "Carmen-I"
-        git config --global user.email "10523999@ucn.dk"
+        # Find all .csproj files
+        for project in $(find . -name '*.csproj'); do
+          echo "Processing project: $project"
 
-    # Push the Dockerfile to the docker branch
-    - name: Push Dockerfile to docker branch
-      run: |
-        git checkout -b docker
-        git add Dockerfile
-        git commit -m "Auto-generated Dockerfile"
-        git push origin docker
+          # Restore dependencies
+          dotnet restore $project
+
+          # Build the project
+          dotnet build $project --configuration Release --no-restore
+
+          # Publish the project to an output directory
+          dotnet publish $project --configuration Release --output ./out/$(basename $project)
+
+          # Generate a Dockerfile dynamically for each project
+          cat <<EOF > Dockerfile
+          FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+          WORKDIR /app
+          COPY ./out/$(basename $project) ./
+          EXPOSE 80
+          ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
+          EOF
+
+          # Log in to GHCR
+          echo "Logging in to GHCR"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          # Build and push Docker image
+          docker build -t ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest .
+          docker push ${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project):latest
+        done
