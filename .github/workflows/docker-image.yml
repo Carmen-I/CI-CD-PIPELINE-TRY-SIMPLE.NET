@@ -57,7 +57,7 @@ jobs:
             echo "${{ secrets.SECRET_NAME }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
             # Build and push Docker image
-            image_name="${{ env.REGISTRY }}/${{ env.OWNER }}/$(basename $project .csproj | tr '[:upper:]' '[:lower:]'):latest"
+            image_name="${{ env.REGISTRY }}/$(echo ${{ env.OWNER }} | tr '[:upper:]' '[:lower:]')/$(basename $project .csproj | tr '[:upper:]' '[:lower:]'):latest"
             docker build -t $image_name .
             docker push $image_name
           done
