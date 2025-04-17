@@ -45,7 +45,8 @@ jobs:
           FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
           WORKDIR /app
           COPY $publish_dir ./
-          EXPOSE 80
+          EXPOSE 8080
+            docker run -d -p 8080:8080 $image_name
           ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
           EOF
             # Log in to GHCR using your secret key
