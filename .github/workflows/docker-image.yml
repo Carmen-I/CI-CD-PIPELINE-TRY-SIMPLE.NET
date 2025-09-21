@@ -1,5 +1,9 @@
 name: Build and Push All Projects to GHCR
 
+permissions:
+  contents: read
+  packages: write
+  
 on:
   push:
     branches:
