@@ -44,7 +44,7 @@ jobs:
             cat > $publish_dir/Dockerfile <<EOF
           FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
           WORKDIR /app
-          COPY $publish_dir ./
+          COPY . ./
           EXPOSE 8080
           ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
           EOF
