@@ -41,7 +41,7 @@ jobs:
             publish_dir="./out/$(basename $project .csproj)"
             dotnet publish $project --configuration Release --output $publish_dir
             # Generate a Dockerfile dynamically for each project
-            cat > Dockerfile <<EOF
+            cat > $publish_dir/Dockerfile <<EOF
           FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
           WORKDIR /app
           COPY $publish_dir ./
