@@ -8,7 +8,7 @@ namespace MVCStarterDynamic.Controllers {
 
         private readonly CustomerAccess _customerAccesss;
 
-        // Constructor
+        // Constructor//test the containers
         public CustomersController() {
             _customerAccesss = CustomerAccess.Instance;     // Singleton
         }
