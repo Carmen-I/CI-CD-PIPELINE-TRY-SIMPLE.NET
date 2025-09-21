@@ -49,7 +49,7 @@ jobs:
           ENTRYPOINT ["dotnet", "$(basename $project .csproj).dll"]
           EOF
             # Log in to GHCR using your secret key
-            echo "${{ secrets.SECRET_NAME }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
             # Build and push Docker image
             image_name="${{ env.REGISTRY }}/$(echo ${{ env.OWNER }} | tr '[:upper:]' '[:lower:]')/$(basename $project .csproj | tr '[:upper:]' '[:lower:]'):latest"
             docker build -t $image_name .
